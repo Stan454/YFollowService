@@ -1,6 +1,8 @@
-﻿public interface IFollowService
+﻿using YFollow.Models;
+
+public interface IFollowService
 {
-    Task FollowUserAsync(Guid followerId, Guid userId);
+    Task FollowUserAsync(FollowDto follow);
     Task UnfollowUserAsync(Guid userId);
-    Task<IEnumerable<Guid>> GetFollowingsAsync(Guid userId);
+    Task<IEnumerable<FollowDto>> GetFollowingsAsync(Guid userId);
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using YFollow.Models;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -11,10 +12,10 @@ public class FollowController : ControllerBase
         _followService = followService;
     }
 
-    [HttpPost("{followerId}/follow/{userId}")]
-    public async Task<IActionResult> FollowUser(Guid followerId, Guid userId)
+    [HttpPost]
+    public async Task<IActionResult> FollowUser(FollowDto follow)
     {
-        await _followService.FollowUserAsync(followerId, userId);
+        await _followService.FollowUserAsync(follow);
         return Ok(new { Message = "User followed successfully." });
     }
 
@@ -26,7 +27,7 @@ public class FollowController : ControllerBase
         return Ok(new { Message = "User unfollowed successfully." });
     }
 
-    [HttpGet("followings/{userId}")]
+    [HttpGet("{userId}")]
     public async Task<IActionResult> GetFollowings(Guid userId)
     {
         var followings = await _followService.GetFollowingsAsync(userId);

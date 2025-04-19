@@ -1,4 +1,6 @@
-﻿public class FollowService : IFollowService
+﻿using YFollow.Models;
+
+public class FollowService : IFollowService
 {
     private readonly IFollowRepository _followRepository;
 
@@ -7,9 +9,9 @@
         _followRepository = followRepository;
     }
 
-    public async Task FollowUserAsync(Guid followerId, Guid userId)
+    public async Task FollowUserAsync(FollowDto followDto)
     {
-        await _followRepository.AddFollowAsync(followerId, userId);
+        await _followRepository.AddFollowAsync(followDto);
     }
 
     public async Task UnfollowUserAsync(Guid userId)
@@ -17,7 +19,7 @@
         await _followRepository.RemoveFollowAsync(userId);
     }
 
-    public async Task<IEnumerable<Guid>> GetFollowingsAsync(Guid userId)
+    public async Task<IEnumerable<FollowDto>> GetFollowingsAsync(Guid userId)
     {
         return await _followRepository.GetFollowingsAsync(userId);
     }

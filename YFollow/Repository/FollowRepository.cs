@@ -1,25 +1,33 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using YFollow.Models;
 
 public class FollowRepository : IFollowRepository
 {
     private readonly ApplicationDbContext _context;
 
-    public FollowRepository(ApplicationDbContext context)
+    private readonly RabbitMQPublisher _rabbitMQPublisher;
+
+    public FollowRepository(ApplicationDbContext context, RabbitMQPublisher rabbitMQPublisher)
     {
         _context = context;
+        _rabbitMQPublisher = rabbitMQPublisher;
     }
 
-    public async Task AddFollowAsync(Guid followerId, Guid userId)
+    public async Task AddFollowAsync(FollowDto followDto)
     {
-        var follow = new Follow
+        if (followDto.FollowerId == followDto.UserId)
         {
-            FollowerId = followerId,
-            UserId = userId
-        };
+            throw new InvalidOperationException("A user cannot follow themselves.");
+        }
 
-        _context.Follows.Add(follow);
+        Follow Follow = Mapper.ToEntity(followDto);
+
+        _context.Follows.Add(Follow);
         await _context.SaveChangesAsync();
+
+        _rabbitMQPublisher.PublishFollowUpdate(followDto);
     }
+
 
 
     public async Task RemoveFollowAsync(Guid userId)
@@ -32,11 +40,16 @@ public class FollowRepository : IFollowRepository
         }
     }
 
-    public async Task<IEnumerable<Guid>> GetFollowingsAsync(Guid userId)
+    public async Task<IEnumerable<FollowDto>> GetFollowingsAsync(Guid userId)
     {
         return await _context.Follows
             .Where(f => f.FollowerId == userId)
-            .Select(f => f.UserId)
+            .Select(f => new FollowDto
+            {
+                UserId = f.UserId,
+                UserName = f.UserName 
+            })
             .ToListAsync();
     }
+
 }
